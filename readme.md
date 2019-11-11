@@ -6,7 +6,7 @@
 
 2. cd into fuseki/fuseki/apache-jena-fuseki-3.13.1 (this is the “FUSEKI_HOME” directory) and run the “fuseki-server” script
 
-´´´
+```
 ./fuseki-server
 
-´´´
+```
