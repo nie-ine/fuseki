@@ -10,3 +10,5 @@
 ./fuseki-server
 
 ```
+
+3. open your browser at localhost:3030 and login with one of the fake credentials in fuseki/fuseki/apache-jena-fuseki-3.13.1/run/shiro.ini f.e. admin:admin
