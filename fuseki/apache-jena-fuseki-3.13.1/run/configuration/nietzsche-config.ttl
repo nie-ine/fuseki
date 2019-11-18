@@ -8,14 +8,14 @@ PREFIX perm:    <http://apache.org/jena/permissions/Assembler#>
 
 
 ##
-## Define the dataset that will be used to store the data.
+## Define the one dataset that will be used to store the data. 
 ## Here the persistent tdb2 and its location is defined. 
-## tdb2:location "tdb-data/nietzsche-data" will create the directory ./tdb-data/nietzsche-data/ and 
-## where all triples are stored persistently
+## tdb2:location "/nietzsche-database" will create the directory ./run/databases/ and 
+## where all triples are stored persistently. Every models base is that dataset.
 ##
 
-tln:persistent_dataset rdf:type tdb2:DatasetTDB2 ;
-    tdb2:location "tdb-data/nietzsche-data" ;
+tln:nietzsche_dataset rdf:type tdb2:DatasetTDB2 ;
+    tdb2:location "run/databases/nietzsche-database" ;
     ja:defaultGraph tln:securedModel;
    .
 
@@ -25,7 +25,7 @@ tln:persistent_dataset rdf:type tdb2:DatasetTDB2 ;
 ##
 
 tln:baseModel rdf:type tdb2:DatasetTDB2 ;
-    tdb2:location "tdb-data/nietzsche-data"
+    tdb2:location "run/databases/nietzsche-database"
     .   
 
 ##
@@ -49,12 +49,9 @@ perm:Model       rdfs:subClassOf  ja:NamedModel .
 
 ##
 ## Definition of the security evaluator.  This is where we use the example 
-## ShiroExampleEvaluator.  For your production environment you will replace 
-## "org.apache.jena.permissions.example.ShiroExampleEvaluator"  with your 
-## SecurityEvaluator implementation.  Note that  ShiroExampleEvaluator constructor 
-## takes a Model argument.  We pass in the unsecured baseModel so that the evaluator 
-## can read it unencumbered.  Your implementation of SecurityEvaluator may have different 
-## parameters to meet your specific needs.
+## ShiroExampleEvaluator. Note that  ShiroExampleEvaluator constructor 
+## takes a Model argument. We pass in the unsecured baseModel so that the evaluator 
+## can read it unencumbered.
 ## 
 
 tln:secEvaluator rdf:type perm:Evaluator ;
@@ -65,11 +62,11 @@ tln:secEvaluator rdf:type perm:Evaluator ;
 
 
 ##
-## Definition of the graph for the inference on the persistent_dataset defined above. 
+## Definition of the graph for the inference on the nietzsche_dataset defined above. 
 ##
 
 <inferenceGraph> rdf:type tdb2:GraphTDB ;
-    tdb2:dataset tln:persistent_dataset
+    tdb2:dataset tln:nietzsche_dataset
     .
 
 ##
@@ -91,11 +88,10 @@ tln:inferedDataset a ja:RDFDataset ;
     ja:defaultGraph       <inferenceModel> ;
      .
 
-
 ##
 ## Definition of the read/write endpoint service
 ##
-## Note that the fuseki:dataset used is the persistent_dataset which is defined as secured above. No inference and resoning here.    
+## Note that the fuseki:dataset used is the nietzsche_dataset which is defined as secured above. No inference and resoning here.    
 ## 
 
 tln:dataService rdf:type fuseki:Service ;
@@ -108,7 +104,7 @@ tln:dataService rdf:type fuseki:Service ;
     fuseki:serviceReadWriteGraphStore      "data" ;
     # A separate read-only graph store endpoint:
     #fuseki:serviceReadGraphStore       "get" ;
-    fuseki:dataset           tln:persistent_dataset ;
+    fuseki:dataset           tln:nietzsche_dataset ;
     .
 
 ##

@@ -25,8 +25,8 @@ then
     exit 1
     fi
 
-JAR1="$FUSEKI_HOME/fuseki-server.jar"
-JAR2="$FUSEKI_HOME/jena-fuseki-server-*.jar"
+JAR1="$FUSEKI_HOME/lib/fuseki-server.jar"
+JAR2="$FUSEKI_HOME/lib/jena-fuseki-server-*.jar"
 JAR=""
 
 for J in "$JAR1" "$JAR2"
@@ -90,6 +90,6 @@ JVM_ARGS=${JVM_ARGS:--Xmx1200M}
 ## "exec" is optional - it simply frees up an OS process.
 ## In this way, you can add custom java to the classpath:
 ## 
-APPJAR=jena-permissions-3.9.0.jar:commons-collections4-4.4.jar:commons-collections4-4.4-javadoc.jar:commons-collections4-4.4-sources.jar:commons-collections4-4.4-tests.jar:commons-collections4-4.4-test-sources.jar
+APPJAR=lib/jena-permissions-3.9.0.jar:lib/commons-collections4-4.4.jar:lib/commons-collections4-4.4-javadoc.jar:lib/commons-collections4-4.4-sources.jar:lib/commons-collections4-4.4-tests.jar:lib/commons-collections4-4.4-test-sources.jar
 java $JVM_ARGS -cp "$JAR:$APPJAR" org.apache.jena.fuseki.cmd.FusekiCmd "$@"
 
