@@ -50,6 +50,6 @@ $ sh scripts/tdb2.tdbloader --loc=run/databases/lombardus-database run/databases
 ```
 $ sh scripts/tdb2.tdbbackup --loc=run/databases/your-database --output=nq
 ```
-* Check the created gzip containing your data in the given format (output) into the given directory [your-database]/backups. 
+* Check the created gzip containing your data in the given format (output) in the given directory ../your-database/backups. 
 * hit sh scripts/tdb2.tdbbackup --help for further options
 
