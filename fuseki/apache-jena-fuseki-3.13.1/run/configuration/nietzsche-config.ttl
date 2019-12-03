@@ -77,7 +77,7 @@ tln:secEvaluator rdf:type perm:Evaluator ;
 <inferenceModel> a ja:InfModel ;
      ja:baseModel <inferenceGraph> ;
      ja:reasoner [
-         ja:reasonerURL <http://jena.hpl.hp.com/2003/OWLFBRuleReasoner>
+         ja:reasonerURL <http://jena.hpl.hp.com/2003/RDFSExptRuleReasoner>
      ] .
  
 ##
