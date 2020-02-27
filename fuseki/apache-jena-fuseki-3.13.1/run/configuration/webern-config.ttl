@@ -15,7 +15,7 @@ PREFIX perm:    <http://apache.org/jena/permissions/Assembler#>
 ##
 
 wbn:persistent_dataset rdf:type tdb2:DatasetTDB2 ;
-    tdb2:location "tdb-data/webern-data" ;
+    tdb2:location "run/databases/webern-database" ;
     ja:defaultGraph wbn:securedModel;
    .
 
@@ -25,7 +25,7 @@ wbn:persistent_dataset rdf:type tdb2:DatasetTDB2 ;
 ##
 
 wbn:baseModel rdf:type tdb2:DatasetTDB2 ;
-    tdb2:location "tdb-data/webern-data"
+    tdb2:location "/webern-database"
     .   
 
 ##
