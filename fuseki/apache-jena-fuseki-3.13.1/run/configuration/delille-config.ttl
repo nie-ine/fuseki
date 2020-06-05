@@ -103,7 +103,7 @@ del:dataService rdf:type fuseki:Service ;
     fuseki:serviceUpload            "upload" ;
     fuseki:serviceReadWriteGraphStore      "data" ;
     # A separate read-only graph store endpoint:
-    #fuseki:serviceReadGraphStore       "get" ;
+    fuseki:serviceReadGraphStore       "get" ;
     fuseki:dataset           del:delille_dataset ;
     .
 
