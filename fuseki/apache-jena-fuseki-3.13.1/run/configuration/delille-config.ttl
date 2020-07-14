@@ -1,4 +1,5 @@
 PREFIX del:     <http://nie-ine.org/projects/delille>
+PREFIX deltemp: <http://nie-ine.org/projects/temp_delille>
 PREFIX fuseki:  <http://jena.apache.org/fuseki#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -11,11 +12,20 @@ PREFIX perm:    <http://apache.org/jena/permissions/Assembler#>
 ## Define the one dataset that will be used to store the data. 
 ## Here the persistent tdb2 and its location is defined. 
 ## tdb2:location "/delille-database" will create the directory ./run/databases/ and 
-## where all triples are stored persistently. Every models base is that dataset.
+## where all triples are stored persistently. Every models base is that dataset,
+## so both endpoints /delille & delille-rw use that same tdb2 database.
 ##
 
 del:delille_dataset rdf:type tdb2:DatasetTDB2 ;
     tdb2:location "run/databases/delille-database" ;
+    ja:defaultGraph del:securedModel;
+   .
+
+##
+## Temporary dataset & TDB2 data base for resoning results & generated data to be cached for faster & simpler access
+##
+deltemp:delille_dataset rdf:type tdb2:DatasetTDB2 ;
+    tdb2:location "run/databases/temp_delille-database" ;
     ja:defaultGraph del:securedModel;
    .
 
@@ -26,6 +36,12 @@ del:delille_dataset rdf:type tdb2:DatasetTDB2 ;
 
 del:baseModel rdf:type tdb2:DatasetTDB2 ;
     tdb2:location "run/databases/delille-database"
+    .
+##
+## base model for temp data
+##
+deltemp:baseModel rdf:type tdb2:DatasetTDB2 ;
+    tdb2:location "run/databases/temp_delille-database"
     .   
 
 ##
@@ -37,6 +53,17 @@ del:baseModel rdf:type tdb2:DatasetTDB2 ;
 del:securedModel rdf:type perm:Model ;
     perm:baseModel del:baseModel ;
     ja:modelName "https://nie-ine.org/delille/securedModel" ;
+    perm:evaluatorImpl del:secEvaluator .
+
+##
+## Definition of the secured model for the temporary dataset: This is where permissions are applied to the 
+## deltemp:baseModel. Note that it is using the security evaluator implementation (perm:evaluatorImpl) 
+## called del:secEvaluator which is defined next.
+##
+
+deltemp:securedModel rdf:type perm:Model ;
+    perm:baseModel deltemp:baseModel ;
+    ja:modelName "https://nie-ine.org/delille/securedTempModel" ;
     perm:evaluatorImpl del:secEvaluator .
 
 ##
@@ -57,6 +84,7 @@ perm:Model       rdfs:subClassOf  ja:NamedModel .
 del:secEvaluator rdf:type perm:Evaluator ;
     perm:args [  
         rdf:_1 del:baseModel ;
+        rdf:_1 deltemp:baseModel
     ] ;
     perm:evaluatorClass "org.apache.jena.permissions.example.ShiroExampleEvaluator" .
 
@@ -106,6 +134,22 @@ del:dataService rdf:type fuseki:Service ;
     fuseki:serviceReadGraphStore       "get" ;
     fuseki:dataset           del:delille_dataset ;
     .
+##
+## Definition of the temporary data endpoint service
+##
+
+deltemp:tempDataService rdf:type fuseki:Service ;
+    rdfs:label                      "TDB2 temp Service for delille (RW)" ;
+    fuseki:name                     "temp_delille-rw" ; # The url of the endpoint: http://host:port/temp_delille-rw
+    fuseki:serviceQuery             "query" ;
+    fuseki:serviceQuery             "sparql" ;
+    fuseki:serviceUpdate            "update" ;
+    fuseki:serviceUpload            "upload" ;
+    fuseki:serviceReadWriteGraphStore      "data" ;
+    # A separate read-only graph store endpoint:
+    fuseki:serviceReadGraphStore       "get" ;
+    fuseki:dataset           deltemp:delille_dataset ;
+    .
 
 ##
 ## The separate read only endpoint to the delille data enabling inference/reasoning. It is consuming the del:inferedDataset. 
@@ -134,4 +178,5 @@ del:fuseki rdf:type fuseki:Server ;
    fuseki:services (
       del:dataService
       del:readOnlyService
+      deltemp:tempDataService 
    ) .
