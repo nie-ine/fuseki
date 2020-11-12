@@ -1,0 +1,140 @@
+PREFIX edbzh:   <http://nie-ine.org/projects/edbzh>
+PREFIX fuseki:  <http://jena.apache.org/fuseki#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
+PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
+PREFIX perm:    <http://apache.org/jena/permissions/Assembler#>
+
+
+##
+## Define the one dataset that will be used to store the data. 
+## Here the persistent tdb2 and its location is defined. 
+## tdb2:location "/edbzh-database" will create the directory ./run/databases/ and 
+## where all triples are stored persistently. Every models base is that dataset,
+## so both endpoints /edbzh & edbzh-rw use that same tdb2 database.
+##
+
+edbzh:edbzh_dataset rdf:type tdb2:DatasetTDB2 ;
+    tdb2:location "run/databases/edbzh-database" ;
+    ja:defaultGraph edbzh:securedModel;
+   .
+
+##
+## Define the base model that contains the unsecured data, on which the secured model with 
+## permissioning base upon.
+##
+
+edbzh:baseModel rdf:type tdb2:DatasetTDB2 ;
+    tdb2:location "run/databases/edbzh-database"
+    .
+
+##
+## Definition of the secured moedbzh: This is where permissions are applied to the 
+## edbzh:baseModel. Note that it is using the security evaluator implementation (perm:evaluatorImpl) 
+## called edbzh:secEvaluator which is defined next.
+##
+
+edbzh:securedModel rdf:type perm:Model ;
+    perm:baseModel edbzh:baseModel ;
+    ja:modelName "https://nie-ine.org/edbzh/securedModel" ;
+    perm:evaluatorImpl edbzh:secEvaluator .
+
+
+##
+## Load the SecuredAssembler class from the permissions library and define 
+## the perm:Model as a subclass of ja:NamedModel.
+##
+
+[] ja:loadClass    "org.apache.jena.permissions.SecuredAssembler" .
+perm:Model       rdfs:subClassOf  ja:NamedModel .
+
+##
+## Definition of the security evaluator.  This is where we use the example 
+## ShiroExampleEvaluator. Note that  ShiroExampleEvaluator constructor 
+## takes a Model argument. We pass in the unsecured baseModel so that the evaluator 
+## can read it unencumbered.
+## 
+
+edbzh:secEvaluator rdf:type perm:Evaluator ;
+    perm:args [  
+        rdf:_1 edbzh:baseModel ;
+    ] ;
+    perm:evaluatorClass "org.apache.jena.permissions.example.ShiroExampleEvaluator" .
+
+
+##
+## Definition of the graph for the inference on the edbzh_dataset defined above. 
+##
+
+<inferenceGraph> rdf:type tdb2:GraphTDB ;
+    tdb2:dataset edbzh:edbzh_dataset
+    .
+
+##
+## Definition of the inference model for basic reasoning. This model has the graph defined above as its baseModel. 
+## Besides the OWLFBRuleReasoner other reasoners can be added here as well ...
+##
+
+<inferenceModel> a ja:InfModel ;
+     ja:baseModel <inferenceGraph> ;
+     ja:reasoner [
+         ja:reasonerURL <http://jena.hpl.hp.com/2003/OWLFBRuleReasoner>
+     ] .
+ 
+##
+## Definition of the dataset for inference. It is an ja:RDFDataset (not a tdb2:DatasetTDB2). 
+## Its defaultgraph is the graph defined above.
+##
+edbzh:inferedDataset a ja:RDFDataset ;
+    ja:defaultGraph       <inferenceModel> ;
+     .
+
+##
+## Definition of the read/write endpoint service
+##
+## Note that the fuseki:dataset used is the edbzh_dataset which is defined as secured above. No inference and resoning here.    
+## 
+
+edbzh:dataService rdf:type fuseki:Service ;
+    rdfs:label                      "TDB2 Service for edbzh (RW)" ;
+    fuseki:name                     "edbzh-rw" ; # The url of the endpoint: http://host:port/edbzh-rw
+    fuseki:serviceQuery             "query" ;
+    fuseki:serviceQuery             "sparql" ;
+    fuseki:serviceUpdate            "update" ;
+    fuseki:serviceUpload            "upload" ;
+    fuseki:serviceReadWriteGraphStore      "data" ;
+    # A separate read-only graph store endpoint:
+    fuseki:serviceReadGraphStore       "get" ;
+    fuseki:dataset           edbzh:edbzh_dataset ;
+    .
+ 
+
+##
+## The separate read only endpoint to the edbzh data enabling inference/reasoning. It is consuming the edbzh:inferedDataset. 
+## To access this endpoint/dataset there are no credentials needed (its model is not a perm:Model and no url entries in shiro.ini)
+##
+
+edbzh:readOnlyService rdf:type fuseki:Service ;
+    rdfs:label                      "TDB2 readOnly service for the edbzh project" ;
+    fuseki:name                     "edbzh" ; # The url of the endpoint: http://host:port/edbzh
+    fuseki:serviceQuery             "query" ;
+    fuseki:serviceReadGraphStore    "get" ;
+    fuseki:dataset                  edbzh:inferedDataset ;
+    .
+
+##
+## Define the fuseki:Server.
+##
+## with time outs:
+## Format 1: "1000" -- 1 second timeout
+## Format 2: "10000,60000" -- 10s timeout to first result, then 60s timeout to for rest of query.
+
+edbzh:fuseki rdf:type fuseki:Server ;
+    ja:context [ 
+                ja:cxtName "arq:queryTimeout" ; 
+                ja:cxtValue "30000,60000" ] ;
+   fuseki:services (
+      edbzh:dataService
+      edbzh:readOnlyService
+   ) .
